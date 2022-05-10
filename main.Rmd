@@ -1,0 +1,284 @@
+---
+date: "`r Sys.Date()`"
+author: "Alberto Rocha, David Dinis, Beatriz Dinis, Ana Moreno"
+title: "Polvices indecentes!"
+output: 
+  officedown::rdocx_document:
+    mapstyles:
+      Normal: ['First Paragraph']
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.cap = TRUE)
+library(officedown)
+library(officer)
+
+fp <- fp_par(
+  text.align = "center", 
+  padding.bottom = 20, padding.top = 120, 
+  border.bottom = fp_border())
+
+ft <- fp_text(shading.color='#EFEFEF', bold = TRUE)
+```
+
+```{r}
+# TODO
+# REFAZER AMPLIACOES
+
+
+
+```
+
+
+```{r}
+knitr::opts_chunk$set(
+  warning = T,
+  message = T,
+  error = T) 
+library(ggplot2)
+library(ggpmisc)
+library(dplyr)
+library(reshape2)
+library(openxlsx)
+library(data.table)
+library(ggpubr)
+library(extrafont)
+
+# CRL DAVID!
+library(wesanderson)
+library(hrbrthemes) # for plot themes
+library(gapminder) # for data
+library(ggbump) # for the bump plot
+
+source('C://repos/path.R'); path('local')
+```
+
+# Objectivos
+
+-   [x] Importar e limpar dados
+-   [ ] Fazer ampliações
+-   [ ] Análise
+
+# Importar e limpar dados
+
+```{r}
+load("dados/2020_2021_raw.RData")
+load('dados/index_metiers.rdata')
+
+# dados lotas SIC
+source('scripts/cmp_sic.R', encoding = 'utf-8')
+
+# portos_slv
+source('scripts/portos.R', encoding = 'utf-8')
+
+# desembarques
+source('scripts/land.R')
+
+# vendas_dia dos anos 2017-2021
+# source('scripts/vd_import.R')
+
+# dados biologicas antigos
+source('scripts/bio_sic.R')
+
+# dados biologicas novos
+source('scripts/bio_naut.R')
+
+# dados lotas nautilus tirado com script para comprimentos
+source('scripts/cmp_naut1.R')
+
+# dados lotas nautilus tirado com script para biologicas
+source('scripts/cmp_naut2.R')
+
+# Executa uma serie de limpezas e corrige formatos
+# Cria parametros de regressao peso-comprimento por ano e regiao
+# Converte pesos em comprimentos e comprimentos em pesos
+# Faz levantamento dos dados de classes
+# Outputs que interessam: naut_cmp - tabela com classes de comprimento 
+#                         naut_peso - tabela com classes de peso
+source('scripts/bio_proc.R')
+
+# ampliações ao desembarque
+source('scripts/amp.R')
+
+
+
+```
+
+# Quality Control
+
+* Nr de individuos medidos na lota16: 145289
+
+* Nr de medidos na nautilus: 7931
+
+* Nr de pesados na nautilus: 44175
+
+* Total no objecto final: 196778
+
+```{r}
+qc_sic = lota16 %>% 
+  group_by(ID_VIAGEM) %>% 
+  summarise(peso_amostra = unique(PESO_AM),
+            n = sum(INDIF, na.rm = T),
+            check = peso_amostra/n)
+```
+
+
+## Landings
+
+```{r}
+
+  land %>%
+  filter(ANO %in% c(2009:2021)) %>% 
+  mutate(zona = case_when(REGIAO == 'S' ~ 'S',
+                          T ~'W')) %>% 
+  group_by(zona, ARTE_EU, ANO) %>% 
+  summarise(QVENDA = sum(land_kg)/1000) %>% 
+  ggplot() + 
+  geom_bar(aes(x = ANO, y = QVENDA, fill = ARTE_EU),
+           stat = 'identity', position = 'dodge',
+           col = 'black') +
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'none',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  facet_grid(ARTE_EU ~ zona, scales = 'free_y') + 
+  scale_fill_manual(values = wes_palette('FantasticFox1', n = 2)) +
+  labs(x = 'Year', y = ' landings (tonnes)', fill = "")
+  
+```
+
+## Numero de individuos/classe de comprimento
+
+```{r}
+  amp%>%
+  filter(GEAR != 'PS') %>% 
+  # filter(ANO %in% c(2009:2018)) %>% 
+  mutate(zona = case_when(REGIAO == '27.9.a.s.a' ~ 'S',
+                          T ~'W')) %>%
+  filter(zona == 'W') %>% 
+  group_by(zona, GEAR, ANO, classe_comp) %>% 
+  summarise(freq = sum(freq)/1000) %>% 
+  
+  
+  ggplot() + 
+  geom_bar(aes(x = classe_comp, y = freq, fill = GEAR),
+           stat = 'identity', position = 'dodge',
+           col = 'black') +
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'none',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  facet_grid(GEAR ~ ANO, scales = 'free_y') + 
+  scale_fill_manual(values = wes_palette('FantasticFox1', n = 3)) +
+  labs(x = 'Year', y = ' landings (tonnes)', fill = "")
+```
+
+## Recruitment
+
+Number of individuals <= Modal class
+
+```{r}
+classe_modal_cmp = amp_cmp %>% 
+  group_by(ANO, MES, GEAR, zona) %>% 
+  summarise(classe_modal = classe_comp[which.max(freq)],
+            freq = max(freq))
+```
+
+```{r}
+names(bio_reg)
+
+teste =
+bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
+  select(ano, regiao, a, b) %>% 
+  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
+                          T ~ 'S')) %>% 
+  right_join(amp_cmp, by = c('ano' = 'ANO', 'zona')) %>% 
+  mutate(peso_estimado_classe = freq * (a * (classe_comp*10) ^ b)/1000) %>% 
+  group_by(ano, message(), zona, GEAR) %>% 
+  summarise(desemb = unique(desemb),
+            peso_estimado_total = sum(peso_estimado_classe),
+            ratio = peso_estimado_total/desemb)
+```
+
+
+
+```{r}
+referencia =
+bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
+  select(ano, regiao, a, b) %>% 
+  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
+                          T ~ 'S')) %>% 
+  right_join(amp_cmp, by = c('ano' = 'ANO', 'zona')) %>% 
+  mutate(peso_estimado_classe = (a * (classe_comp*10) ^ b)/1000) 
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Estimativas de %% de maturacao
+
+```{r}
+
+# ensaio de maturacao
+
+bio_tmp %>%
+  group_by(mes, sexo, regiao) %>%
+  summarise(imatur = mean(mat %in% c('1', '2'))) %>%
+            
+  ggplot() + 
+    geom_line(aes(x = mes,
+                   y = imatur,
+                   group = sexo)) +
+
+  facet_grid(regiao ~ sexo) +
+  theme_light() + 
+  theme(legend.position = 'bottom')
+
+st = 
+bio_tmp %>% 
+  mutate(time = paste0(ano, mes)) %>% 
+  group_by(time) %>% 
+  summarise(mat = sum((mat %in% c('1', '2'))) / length(mat)) 
+  
+st %>% 
+  ggplot() + 
+  geom_line(aes(x = time, y = mat, group = 1)) + theme_light() + 
+  theme(axis.text.x = element_text(angle = 90))
+
+
+st2 = 
+bio_tmp %>% 
+  group_by(ano, mes) %>% 
+  summarise(mat = sum((!mat %in% c('1', '2'))) / length(mat)) 
+
+st2 %>% 
+  ggplot() + 
+  geom_line(aes(x = mes, y = mat, group = ano, col = ano)) + theme_light()
+
+
+```
+
+
+
+
+
+
+
+
