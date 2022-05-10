@@ -23,7 +23,7 @@ ft <- fp_text(shading.color='#EFEFEF', bold = TRUE)
 
 ```{r}
 # TODO
-# REFAZER AMPLIACOES
+# REFAZER AMPLIACOES1
 
 
 
