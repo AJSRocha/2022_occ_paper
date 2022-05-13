@@ -1,0 +1,310 @@
+      select a.id_viagem,
+             a.id_origem,
+             a.id_denominacao,
+             a.id_caixa,
+             a.id_spp,
+             a.id_indiv,
+             a.Sampling_type,
+             a.regiao,
+             a.data_fin,
+             a.data_venda,
+             a.trim,a.ano,
+             a.nome_navio,
+             a.matricula,
+             a.cfr,a.lota,
+             a.iporto,
+             a.peso_vendido,
+             a.cat_com,
+             a.denominacao,
+             a.estrategia_amostragem,
+             a.peso_total_dom,
+             a.peso_amostrado_dom,a.n_caixas,
+             a.n_caixas_amostradas,
+             a.especie_am,
+             a.peso_total_caixa,
+             a.peso_am_caixa,
+             a.n_total_caixa,
+             a.n_amostrados_caixa,
+             a.peso_total_spp,
+             a.n_total_spp,
+             a.peso_am_spp,
+             a.n_amostrado_comprimentos,
+             a.n_machos_tot,
+             a.n_femeas_tot,
+             a.n_indeterminados_tot,
+             a.n_nao_observados_tot,
+             a.peso_machos_amostr,
+             a.peso_femeas_amostr,
+             a.peso_indeterminados_amostr,
+             a.num_observacao,
+             a.sexo,
+             b.escala_mat,
+             b.desig estado_maturacao,
+             a.comp_total,
+             a.peso_total,
+             a.recolha_gonada,
+             a.recolha_otolito,
+             a.recolha_escamas,
+             a.recolha_ilicio,
+             a.recolha_vertebras,
+             a.recolha_raio_barbatana,
+             a.recolha_espinhos_dorsais,
+             a.recolha_espinhos_caudais,
+             a.recolha_estatolitos,
+             a.recolha_siba,
+             a.recolha_bastonetes,
+             a.recolha_bicos,a.obs,
+             a.comp_manto,
+             a.peso_eviscerado,
+             a.peso_gonada,
+             a.peso_gonada_fixado,
+             a.m_peso_complex_espermatoforico,
+             a.estado_replecao_estomago,
+             a.fecundada,
+             a.peso_gland_digestiva,
+             a.comp_testiculo,
+             a.peso_testiculo,
+             a.peso_gland_nidamentar_c_acessoria,
+             a.peso_ovario,
+             a.peso_oviducto_proximal,
+             a.peso_ovario_c_oviducto,
+             a.peso_gland_oviducal,
+             a.peso_oviducto_distal,
+             a.peso_gland_ovi_c_ovi_distal,
+             a.estimacao_fecundidade,
+             a.fecundidade
+  from(select 
+             p1.id id_viagem,
+             p2.id id_origem,
+             p3.id id_denominacao,
+             p6.id id_caixa,
+             p7.id id_spp,
+             p11.id id_indiv,
+   case when p6.caixa_comprada=1 then 'Vendor' 
+        else 'Market' end Sampling_type,
+   case when rpo.desig = 'Norte' then 'NW' 
+        when rpo.desig = 'Centro' then 'SW' 
+        else rpo.desig end regiao,
+             p1.data_fin,
+             p2.data data_venda,
+   case when substr(p2.data,6,2) in ('01','02','03') then '1' 
+        when substr(p2.data,6,2) in ('04','05','06') then '2'
+        when substr(p2.data,6,2) in ('07','08','09') then '3' 
+        else '4' end trim,DATE_FORMAT(p2.data, '%Y') ano,
+             emb.nome nome_navio,
+             emb.matricula,
+             emb.cfr,
+             por.nome lota,
+             por.codigo_slv iporto,
+             cast(p2.peso_vendido as DECIMAL(10,2)) peso_vendido,
+             p4.desig cat_com,
+             p5.desig denominacao,
+             est_am.desig estrategia_amostragem,
+             cast(p3.peso_total as DECIMAL(10,2)) peso_total_dom,
+             cast(p3.peso_amostrado as DECIMAL(10,2)) peso_amostrado_dom,
+             cast(p3.n_caixas as DECIMAL(10,0)) n_caixas,
+             cast(p3.n_caixas_amostradas as DECIMAL(10,0)) n_caixas_amostradas,
+             p8.cod_fao especie_am,
+             cast(p6.peso_total as DECIMAL(10,2)) peso_total_caixa,
+             cast(p6.peso_amostrado as DECIMAL(10,2)) peso_am_caixa,
+             cast(p6.n_total as DECIMAL(10,0)) n_total_caixa,
+             cast(p6.n_amostrados as DECIMAL(10,0)) n_amostrados_caixa,
+             cast(p7.peso_total as DECIMAL(10,2)) peso_total_spp,
+             cast(p7.n_total as DECIMAL(10,0)) n_total_spp,
+             cast(p7.peso_amostrado_comprimentos as DECIMAL(10,2)) peso_am_spp,
+      cast(p7.n_amostrado_comprimentos as DECIMAL(10,0)) n_amostrado_comprimentos,
+             p7.n_machos n_machos_tot,
+             p7.n_femeas n_femeas_tot,
+             p7.n_indeterminados n_indeterminados_tot,
+             p7.n_nao_observados n_nao_observados_tot,
+             p7.peso_machos_amostr,
+             p7.peso_femeas_amostr,
+             p7.peso_indeterminados_amostr,
+             p11.num_observacao,
+   case when cast(p11.sexo as CHAR)='1' then 'M' 
+        when cast(p11.sexo as CHAR)='2' then 'F' 
+        when cast(p11.sexo as CHAR)='3' then 'I' 
+        when cast(p11.sexo as CHAR)='3' then 'H' 
+        when cast(p11.sexo as CHAR)='4' then 'Nobs' end sexo,
+             p11.estado_maturacao,
+             cast(p11.comp_total as DECIMAL(10,2)) comp_total,
+             cast(p11.peso_total as DECIMAL(10,2)) peso_total,
+             p11.recolha_gonada,
+             p11.recolha_otolito,
+             p11.recolha_escamas,
+             p11.recolha_ilicio,
+             p11.recolha_vertebras,
+             p11.recolha_raio_barbatana,
+             p11.recolha_espinhos_dorsais,
+             p11.recolha_espinhos_caudais,
+             p11.recolha_estatolitos,
+             p11.recolha_siba,
+             p11.recolha_bastonetes,
+             p11.recolha_bicos,p11.obs,
+             cast(p12.comp_manto as DECIMAL(10,2)) comp_manto,
+             cast(p12.peso_eviscerado as DECIMAL(10,2)) peso_eviscerado,
+          	 cast(p12.peso_gonada as DECIMAL(10,2)) peso_gonada,
+          	 cast(p12.peso_gonada_fixado as DECIMAL(10,2)) peso_gonada_fixado,
+          	 p12.m_peso_complex_espermatoforico,
+          	 p12.estado_replecao_estomago,p12.fecundada,
+          	 cast(p12.peso_gland_digestiva as DECIMAL(10,2)) peso_gland_digestiva,
+          	 cast(p12.comp_testiculo as DECIMAL(10,2)) comp_testiculo,
+          	 cast(p12.peso_testiculo as DECIMAL(10,2)) peso_testiculo,
+          	 cast(p12.peso_gland_nidamentar_c_acessoria as DECIMAL(10,2)) peso_gland_nidamentar_c_acessoria,
+          	 cast(p12.peso_ovario as DECIMAL(10,2)) peso_ovario,
+          	 cast(p12.peso_oviducto_proximal as DECIMAL(10,2)) peso_oviducto_proximal,
+          	 cast(p12.peso_ovario_c_oviducto as DECIMAL(10,2)) peso_ovario_c_oviducto,
+          	 cast(p12.peso_gland_oviducal as DECIMAL(10,2)) peso_gland_oviducal,
+          	 cast(p12.peso_oviducto_distal as DECIMAL(10,2)) peso_oviducto_distal,
+          	 cast(p12.peso_gland_ovi_c_ovi_distal as DECIMAL(10,2)) peso_gland_ovi_c_ovi_distal,
+          	 p12.estimacao_fecundidade,
+          	 p12.fecundidade
+        from pnab.viagem p1,
+             pnab.venda p2,
+             pnab.embarcacao emb,
+             porto por,
+             pnab.regiao_porto rpo,
+             pnab.denominacao p3,
+             pnab.cat_comercial p4,
+             pnab.denominacao_comercial p5,
+             pnab.caixa p6,
+             pnab.amostra_especie p7,
+             pnab.especie_generica p8,
+             pnab.individuo p11,
+             pnab.bio_cefalopode p12,
+             pnab.estrat_amostragem est_am
+       where p2.viagem=p1.id and 
+             emb.id=p1.embarcacao and 
+             por.id=p2.porto and 
+             rpo.id=por.regiao and 
+             p2.id=p3.origem and 
+             p4.id=p3.cat_comercial and 
+             p3.denominacao_comercial=p5.id and 
+             p6.denominacao=p3.id and 
+             p7.caixa=p6.id and 
+             p7.especie=p8.id and 
+             p11.amostra=p7.id and 
+             p11.id=p12.id and 
+             p3.estrat_amostragem=est_am.id and 
+             p8.cod_fao='OCC'
+    UNION ALL
+      select p1.id id_viagem,
+             p2.id id_origem,
+             p3.id id_denominacao,
+             p6.id id_caixa,
+             p7.id id_spp,
+             p11.id id_indiv,
+             'OnBoard' Sampling_type,
+   case when rpo.desig = 'Norte' then 'NW' 
+        when rpo.desig = 'Centro' then 'SW' 
+        else rpo.desig end regiao,
+             p1.data_fin,null data_venda,
+   case when substr(p1.data_fin,6,2) in ('01','02','03') then '1' 
+        when substr(p1.data_fin,6,2) in ('04','05','06') then '2'
+        when substr(p1.data_fin,6,2) in ('07','08','09') then '3' 
+        else '4' end trim,
+             DATE_FORMAT(p1.data_fin, '%Y') ano,
+             emb.nome nome_navio,
+             emb.matricula,
+             emb.cfr,
+             por.nome lota,
+             por.codigo_slv iporto,
+             null peso_vendido,
+             p4.desig cat_com,
+             p5.desig denominacao,
+             est_am.desig estrategia_amostragem,
+             cast(p3.peso_total as DECIMAL(10,2)) peso_total_dom,
+             cast(p3.peso_amostrado as DECIMAL(10,2)) peso_amostrado_dom,
+             cast(p3.n_caixas as DECIMAL(10,0)) n_caixas,
+             cast(p3.n_caixas_amostradas as DECIMAL(10,0)) n_caixas_amostradas,
+             p8.cod_fao especie_am,
+             cast(p6.peso_total as DECIMAL(10,2)) peso_total_caixa,
+             cast(p6.peso_amostrado as DECIMAL(10,2)) peso_am_caixa,
+             cast(p6.n_total as DECIMAL(10,0)) n_total_caixa,
+             cast(p6.n_amostrados as DECIMAL(10,0)) n_amostrados_caixa,
+             cast(p7.peso_total as DECIMAL(10,2)) peso_total_spp,
+             cast(p7.n_total as DECIMAL(10,0)) n_total_spp,
+             cast(p7.peso_amostrado_comprimentos as DECIMAL(10,2)) peso_am_spp,
+             cast(p7.n_amostrado_comprimentos as DECIMAL(10,0)) n_amostrado_comprimentos,
+             p7.n_machos n_machos_tot,
+             p7.n_femeas n_femeas_tot,
+             p7.n_indeterminados n_indeterminados_tot,
+             p7.n_nao_observados n_nao_observados_tot,
+             p7.peso_machos_amostr,
+             p7.peso_femeas_amostr,
+             p7.peso_indeterminados_amostr,
+             p11.num_observacao,
+   case when cast(p11.sexo as CHAR)='1' then 'M' 
+        when cast(p11.sexo as CHAR)='2' then 'F' 
+        when cast(p11.sexo as CHAR)='3' then 'I' 
+        when cast(p11.sexo as CHAR)='3' then 'H' 
+        when cast(p11.sexo as CHAR)='4' then 'Nobs' end sexo,
+             p11.estado_maturacao,cast(p11.comp_total as DECIMAL(10,2)) comp_total,
+             cast(p11.peso_total as DECIMAL(10,2)) peso_total,
+             p11.recolha_gonada,
+             p11.recolha_otolito,
+             p11.recolha_escamas,
+             p11.recolha_ilicio,
+             p11.recolha_vertebras,
+             p11.recolha_raio_barbatana,
+             p11.recolha_espinhos_dorsais,
+             p11.recolha_espinhos_caudais,
+             p11.recolha_estatolitos,
+             p11.recolha_siba,
+             p11.recolha_bastonetes,
+             p11.recolha_bicos,p11.obs,
+             cast(p12.comp_manto as DECIMAL(10,2)) comp_manto,
+             cast(p12.peso_eviscerado as DECIMAL(10,2)) peso_eviscerado,
+          	 cast(p12.peso_gonada as DECIMAL(10,2)) peso_gonada,
+          	 cast(p12.peso_gonada_fixado as DECIMAL(10,2)) peso_gonada_fixado,
+          	 p12.m_peso_complex_espermatoforico,
+          	 p12.estado_replecao_estomago,p12.fecundada,
+          	 cast(p12.peso_gland_digestiva as DECIMAL(10,2)) peso_gland_digestiva,
+          	 cast(p12.comp_testiculo as DECIMAL(10,2)) comp_testiculo,
+          	 cast(p12.peso_testiculo as DECIMAL(10,2)) peso_testiculo,
+          	 cast(p12.peso_gland_nidamentar_c_acessoria as DECIMAL(10,2)) peso_gland_nidamentar_c_acessoria,
+          	 cast(p12.peso_ovario as DECIMAL(10,2)) peso_ovario,
+          	 cast(p12.peso_oviducto_proximal as DECIMAL(10,2)) peso_oviducto_proximal,
+          	 cast(p12.peso_ovario_c_oviducto as DECIMAL(10,2)) peso_ovario_c_oviducto,
+          	 cast(p12.peso_gland_oviducal as DECIMAL(10,2)) peso_gland_oviducal,
+          	 cast(p12.peso_oviducto_distal as DECIMAL(10,2)) peso_oviducto_distal,
+          	 cast(p12.peso_gland_ovi_c_ovi_distal as DECIMAL(10,2)) peso_gland_ovi_c_ovi_distal,
+          	 p12.estimacao_fecundidade,p12.fecundidade
+        from pnab.viagem p1,
+             pnab.lance p2,
+             pnab.embarcacao emb,
+             porto por,
+             pnab.regiao_porto rpo,
+             pnab.denominacao p3,
+             pnab.cat_comercial p4,
+             pnab.denominacao_comercial p5,
+             pnab.caixa p6,
+             pnab.amostra_especie p7,
+             pnab.especie_generica p8,
+             pnab.individuo p11,
+             pnab.bio_cefalopode p12,
+             pnab.estrat_amostragem est_am
+       where p2.viagem=p1.id and 
+             emb.id=p1.embarcacao and 
+             por.id=p1.porto_fin and 
+             rpo.id=por.regiao and 
+             p2.id=p3.origem and 
+             p4.id=p3.cat_comercial and 
+             p3.denominacao_comercial=p5.id and 
+             p6.denominacao=p3.id and 
+             p7.caixa=p6.id and 
+             p7.especie=p8.id and 
+             p11.amostra=p7.id and 
+             p11.id=p12.id and 
+             p3.estrat_amostragem=est_am.id and 
+             p8.cod_fao='OCC'
+                       )a
+   LEFT JOIN /*maturacoes*/
+     (select p1.id,
+             p1.desig,
+             p2.desig escala_mat 
+        from pnab.estado_maturacao p1,
+             pnab.escala_estado_maturacao p2 
+       where p2.id=p1.escala) b
+          ON b.id=a.estado_maturacao;
+          
