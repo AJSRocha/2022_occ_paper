@@ -1,4 +1,4 @@
-bio16 = read.csv("C:/dados_pnab/sic_naut/allspp_19972016_bio.csv", sep = ";", dec = ",")
+bio16 = read.csv(paste0(dados, "/sic_naut//allspp_19972016_bio.csv"), sep = ";", dec = ",")
 
 bio16 = 
   bio16 %>%

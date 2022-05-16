@@ -52,7 +52,12 @@ lota_naut_2 =
             n_amostrado_comprimentos = n_amostrado_comprimentos,
             n_nao_observados_tot = n_nao_observados_tot,
             comp_manto = comp_manto,
-            peso_total = peso_total)
+            peso_total = peso_total) %>%
+  # correcção aos barcos de peniche para os quais nao foi possivel obter info dos ts e, consequentemente extrapolar à viagem
+  mutate(land_kg = case_when(is.na(peso_total_spp) & PORTO == 'Peniche' ~ peso_am_spp,
+                             T ~ land_kg),
+         peso_total_spp = case_when(is.na(peso_total_spp) & PORTO == 'Peniche' ~ peso_am_spp,
+                                    T ~ peso_total_spp))
             
             
 lota_naut_2 =

@@ -133,6 +133,7 @@ lota_naut_2_cmp =
 
 
 naut_cmp = data.frame(
+  id_viagem = c(lota_naut_1$id_viagem, lota_naut_2_cmp$id_viagem),
   DATA = c(lota_naut_1$DATA, lota_naut_2_cmp$DATA),
   ANO = c(lota_naut_1$ANO, lota_naut_2_cmp$ANO),
   MES = c(lota_naut_1$MES, lota_naut_2_cmp$MES),
@@ -148,13 +149,17 @@ naut_cmp = data.frame(
   peso_total_spp = c(lota_naut_1$peso_total_spp, lota_naut_2_cmp$peso_total_spp),
   peso_am_spp = c(lota_naut_1$peso_am_spp, lota_naut_2_cmp$peso_am_spp),
   n_nao_observados = c(lota_naut_1$n_nao_observados, lota_naut_2_cmp$n_nao_observados)
-  ) %>% 
-  mutate(peso_am_spp = case_when(is.na(peso_am_spp) ~ peso_total_spp,
-                                 T ~ peso_am_spp),
-         peso_total_spp = case_when(is.na(peso_total_spp) ~ peso_am_spp,
-                                 T ~ peso_total_spp)
-         # COMPLETAR COM OUTRAS MEDIDAS
-         )
+  ) 
+
+# Rever estas medidas: isto é problematico!!
+
+# %>%
+#   mutate(peso_am_spp = case_when(is.na(peso_am_spp) ~ peso_total_spp,
+#                                  T ~ peso_am_spp),
+#          peso_total_spp = case_when(is.na(peso_total_spp) ~ peso_am_spp,
+#                                  T ~ peso_total_spp)
+#          # COMPLETAR COM OUTRAS MEDIDAS
+#          )
   
 
 

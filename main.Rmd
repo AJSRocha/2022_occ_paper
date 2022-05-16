@@ -25,6 +25,11 @@ ft <- fp_text(shading.color='#EFEFEF', bold = TRUE)
 # TODO
 # REFAZER AMPLIACOES1
 
+# Compilar lista de problemas
+
+## SIC
+# 114626 - classes de comprimento fodidas
+# 111077 - ??
 
 
 ```
@@ -50,7 +55,8 @@ library(hrbrthemes) # for plot themes
 library(gapminder) # for data
 library(ggbump) # for the bump plot
 
-source('C://repos/path.R'); path('local')
+
+# dados = 'Z://Documents//PNAB/'
 ```
 
 # Objectivos
@@ -62,8 +68,12 @@ source('C://repos/path.R'); path('local')
 # Importar e limpar dados
 
 ```{r}
-load("dados/2020_2021_raw.RData")
-load('dados/index_metiers.rdata')
+source('C://repos/path.R'); path('local')
+
+load(paste0(dados,'//2022_occ_tmp//2020_2021_raw.RData'))
+load(paste0(dados,'//2022_occ_tmp//2020_2021_raw_update.RData'))
+load(paste0(dados,'//2022_occ_tmp//index_metiers.rdata'))
+
 
 # dados lotas SIC
 source('scripts/cmp_sic.R', encoding = 'utf-8')
@@ -182,10 +192,10 @@ qc_sic = lota16 %>%
 Number of individuals <= Modal class
 
 ```{r}
-classe_modal_cmp = amp_cmp %>% 
-  group_by(ANO, MES, GEAR, zona) %>% 
-  summarise(classe_modal = classe_comp[which.max(freq)],
-            freq = max(freq))
+classe_modal_cmp = amp_peso %>% 
+  group_by(ANO, GEAR, REGIAO) %>% 
+  summarise(classe_modal = classe_peso[which.max(n_ampliados)],
+            freq = max(n_ampliados))
 ```
 
 ```{r}
