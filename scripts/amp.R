@@ -11,7 +11,7 @@ naut_peso %>%
   group_by(id_viagem) %>% 
   summarise(peso_referencia = sum(peso_referencia, na.rm = T),
             n_viagem = sum(n_cat),
-            check = peso_referencia/n_viagem) %>% View
+            check = peso_referencia/n_viagem) %>% 
   filter(check > 7.5 | check < 0.3) %>% 
   select(id_viagem) %>% unique
 
