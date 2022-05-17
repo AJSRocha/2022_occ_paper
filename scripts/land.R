@@ -9,7 +9,7 @@ land =
   land %>% 
   filter(COD_FAO %in% c("OCC", "OCT")) %>%
   # filter(PESQUEIRO == "P") %>%
-  # filter(ARTE_EU %in%c('DTRAWL', 'POLYVALENT')) %>% 
+  filter(!grepl('SP_', ARTE_EU)) %>% 
   transmute(ANO = factor(ANO),
             MES = factor(MES),
             REGIAO =case_when(REGIAO == "S" ~ "27.9.a.s.a",
@@ -35,4 +35,5 @@ land %>% group_by(PORTO_NOME, EGRUPART,
 
 land = land %>% left_join(portos_slv[,c('codporto', 'lota')],
                           by = c('PORTO_SLV' = 'codporto'))
+
 
