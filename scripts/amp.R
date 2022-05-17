@@ -51,8 +51,8 @@ amp_peso =
   naut_peso %>% 
   filter(GEAR != 'PS') %>% 
   # aplica filtros
-  filter(!id_viagem %in% check_peso_medio) %>%
-  filter(!id_viagem %in% check_classes) %>% 
+  filter(!id_viagem %in% check_peso_medio$id_viagem) %>%
+  filter(!id_viagem %in% check_classes$id_viagem) %>% 
   mutate(n_amplia_viagem = case_when(ANO %in% c(2009:2016) ~ n_nao_observados * peso_total_caixa / peso_am_caixa,
                                      T ~ n_nao_observados * peso_total_spp / peso_am_spp * land_kg / peso_amostrado_dom)) %>% 
   # agrega

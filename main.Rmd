@@ -158,6 +158,8 @@ qc_sic = lota16 %>%
 
 ```{r}
   amp_peso %>%
+  filter(ANO %in% c(2012:2021)) %>%
+  filter(GEAR == 'OTB') %>% 
   group_by(zona, GEAR, ANO, classe_peso) %>% 
   summarise(freq = sum(n_ampliados)/1000) %>% 
   
@@ -174,7 +176,32 @@ qc_sic = lota16 %>%
         ) +
   facet_grid(zona ~ ANO, scales = 'free_y') + 
   scale_fill_manual(values = wes_palette('FantasticFox1', n = 3)) +
-  labs(x = 'Year', y = ' landings (tonnes)', fill = "")
+  labs(x = expression(weight~class~Delta~"="~"50g"),
+       y = expression(10^{3}~"individuals"), fill = "")
+
+
+  amp_peso %>%
+  filter(ANO %in% c(2012:2021)) %>% 
+    filter(GEAR == 'MIS') %>% 
+  group_by(zona, GEAR, ANO, classe_peso) %>% 
+  summarise(freq = sum(n_ampliados)/1000) %>% 
+  
+  
+  ggplot() + 
+  geom_bar(aes(x = classe_peso, y = freq, fill = GEAR),
+           stat = 'identity', position = 'dodge',
+           col = 'black') +
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'none',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  facet_grid(zona ~ ANO, scales = 'free_y') + 
+  scale_fill_manual(values = wes_palette('FantasticFox1', n = 3)) +
+  labs(x = expression(weight~class~Delta~"="~"50g"),
+       y = expression(10^{3}~"individuals"), fill = "")
+
 ```
 
 ## Recruitment
@@ -207,7 +234,7 @@ bio_reg %>% filter(regiao != '27.9.a.c.n') %>%
 
 
 ```{r}
-referencia =
+referencia_cmp =
 bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
   select(ano, regiao, a, b) %>% 
   mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
@@ -216,6 +243,15 @@ bio_reg %>% filter(regiao != '27.9.a.c.n') %>%
   mutate(peso_estimado_classe = (a * (classe_comp*10) ^ b)/1000) 
 ```
 
+```{r}
+referencia_peso =
+bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
+  select(ano, regiao, a, b) %>% 
+  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
+                          T ~ 'S')) %>% 
+  right_join(amp_peso, by = c('ano' = 'ANO', 'zona')) %>% 
+  mutate(cop_estimado_classe = ((classe_peso/a) ^(1/b))/10)  
+```
 
 
 
