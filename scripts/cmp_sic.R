@@ -23,7 +23,7 @@ OTB =
   unique(lota16$ARTE_EU)[grepl('OTB',unique(lota16$ARTE_EU)) |
                            grepl('TRAWL',unique(lota16$ARTE_EU))]
 PS =
-  unique(lota16$ARTE_EU)[grepl('SEI',unique(lota16$ARTE_EU)) ]
+  unique(lota16$ARTE_EU)[grepl('PS_',unique(lota16$ARTE_EU)) ]
 
 # polvos medidos até à ponta do tentaculo (??!!)
 viag_sines = c(106841,106857,106876,106931,106897,106930,106915,106835,106921,107703,115753,114784,115756)
