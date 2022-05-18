@@ -23,13 +23,15 @@ ft <- fp_text(shading.color='#EFEFEF', bold = TRUE)
 
 ```{r}
 # TODO
-# REFAZER AMPLIACOES1
+# 
 
 # Compilar lista de problemas
 
 ## SIC
 # 114626 - classes de comprimento fodidas
 # 111077 - ??
+
+# Ver impacto do campo novo, processamento
 
 
 ```
@@ -64,7 +66,7 @@ library(ggbump) # for the bump plot
 ```{r}
 source('C://repos/path.R'); path('local')
 
-load(paste0(dados,'//2022_occ_tmp//2020_2021_raw.RData'))
+# load(paste0(dados,'//2022_occ_tmp//2020_2021_raw.RData'))
 load(paste0(dados,'//2022_occ_tmp//2020_2021_raw_update.RData'))
 load(paste0(dados,'//2022_occ_tmp//index_metiers.rdata'))
 
@@ -125,7 +127,6 @@ qc_sic = lota16 %>%
             n = sum(INDIF, na.rm = T),
             check = peso_amostra/n)
 ```
-
 
 ## Landings
 
@@ -215,45 +216,72 @@ classe_modal_cmp = amp_peso %>%
             freq = max(n_ampliados))
 ```
 
-```{r}
-names(bio_reg)
+## Raça sexual
 
-teste =
-bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
-  select(ano, regiao, a, b) %>% 
-  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
-                          T ~ 'S')) %>% 
-  right_join(amp_cmp, by = c('ano' = 'ANO', 'zona')) %>% 
-  mutate(peso_estimado_classe = freq * (a * (classe_comp*10) ^ b)/1000) %>% 
-  group_by(ano, message(), zona, GEAR) %>% 
-  summarise(desemb = unique(desemb),
-            peso_estimado_total = sum(peso_estimado_classe),
-            ratio = peso_estimado_total/desemb)
+```{r}
+bio_tmp %>%
+    mutate(zona = case_when(regiao == '27.9.a.s.a' ~ 'S',
+                          T ~'W'),
+           mes = as.numeric(as.character(mes)),
+           ano = as.numeric(as.character(ano)),
+           ano_mes = zoo::as.yearmon(paste(ano, mes, sep = '-'))) %>% 
+  group_by(ano_mes, zona) %>% 
+  summarise(rassudo_sexual = sum(sexo == 'M')/sum(sexo=='F')) %>% 
+   
+  ggplot() + 
+  geom_line(aes(x = ano_mes, y = rassudo_sexual, group = zona, col = zona)) +
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'bottom',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4])
+```
+
+# (I)maturidade à classe de comprimento
+
+```{r}
+bio_tmp %>% 
+  filter(ano %in% c(2009:2016)) %>% 
+  ggplot() +
+  geom_point(aes(x = comp_manto, y = peso, color = regiao)) + 
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'bottom',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  scale_color_manual(values = wes_palette('Zissou1', n = 5)[c(1,3,5)])
+  
 ```
 
 
-
 ```{r}
-referencia_cmp =
-bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
-  select(ano, regiao, a, b) %>% 
-  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
-                          T ~ 'S')) %>% 
-  right_join(amp_cmp, by = c('ano' = 'ANO', 'zona')) %>% 
-  mutate(peso_estimado_classe = (a * (classe_comp*10) ^ b)/1000) 
+bio_tmp %>%
+    mutate(zona = case_when(regiao == '27.9.a.s.a' ~ 'S',
+                          T ~'W'),
+           mes = as.numeric(as.character(mes)),
+           ano = as.numeric(as.character(ano)),
+           ano_mes = zoo::as.yearmon(paste(ano, mes, sep = '-'))) %>%
+  # filter(ano == 2017) %>% 
+  group_by(ano, zona, sexo, comp_manto) %>%
+  summarise(viris = sum(mat%in%c(3,4,5))/length(mat)) %>% #View()
+  ggplot() + 
+  geom_point(aes(x = comp_manto, y = viris, group = zona, col = sexo)) +
+  theme_light() + 
+  theme(axis.text.x = element_text(angle = 90),
+        legend.position = 'bottom',
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank()
+        ) +
+  scale_color_manual(values = wes_palette('Zissou1', n = 4)[c(1,4)]) + 
+  facet_grid(ano ~ zona)
 ```
+  
+  
 
-```{r}
-referencia_peso =
-bio_reg %>% filter(regiao != '27.9.a.c.n') %>% 
-  select(ano, regiao, a, b) %>% 
-  mutate(zona = case_when(regiao == '27.9.a.c.s' ~ 'W',
-                          T ~ 'S')) %>% 
-  right_join(amp_peso, by = c('ano' = 'ANO', 'zona')) %>% 
-  mutate(cop_estimado_classe = ((classe_peso/a) ^(1/b))/10)  
 ```
-
-
 
 
 
