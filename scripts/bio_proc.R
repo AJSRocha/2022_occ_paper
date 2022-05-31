@@ -194,7 +194,7 @@ lota_naut_2_peso =
   lota_naut_2 %>% 
   mutate(classe_peso = plyr::round_any(peso_total, 50, f = floor)) %>% 
   group_by(codporto, id_viagem, id_denominacao, id_caixa,
-           id_spp, REGIAO, DATA, ANO, PORTO, GEAR,
+           id_spp, REGIAO, DATA, ANO, MES, PORTO, GEAR,
            cat_com, especie_am, land_kg, peso_amostrado_dom,
            peso_total_caixa, peso_am_caixa,
            peso_total_spp, peso_am_spp,
