@@ -151,7 +151,8 @@ qc_sic = lota16 %>%
         ) +
   facet_grid(EGRUPART ~ zona, scales = 'free_y') + 
   scale_fill_manual(values = wes_palette('FantasticFox1', n = 2)) +
-  labs(x = 'Year', y = ' landings (tonnes)', fill = "")
+  labs(x = 'Year', y = ' Landings (tonnes)', fill = "")
+  ggsave(file = 'plots/landings.png')
   
 ```
 
@@ -183,7 +184,7 @@ qc_sic = lota16 %>%
   labs(x = expression(weight~class~Delta~"="~"50g"),
        y = expression(10^{3}~"individuals"), fill = "",
        title = 'Weight class frequency distribution - OTB')
-  
+  ggsave('plots/dist_L_otb.png')
 
   amp_peso %>%
   filter(ANO %in% c(2012:2021)) %>% 
@@ -207,6 +208,8 @@ qc_sic = lota16 %>%
   labs(x = expression(weight~class~Delta~"="~"50g"),
        y = expression(10^{3}~"individuals"), fill = "",
        title = 'Weight class frequency distribution - MIS_MIS')
+   ggsave('plots/dist_L_mis.png')
+  
 
 ```
 
@@ -247,6 +250,7 @@ amp_peso %>%
   scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()+
    theme(axis.text.x = element_text(angle = 90, size = 5)) +
     labs(x = 'Year', y = ' Recruits', fill = "")
+ ggsave('plots/recruits_year.png')
 ```
 
 ```{r}
@@ -272,6 +276,7 @@ amp_peso %>%
   scale_fill_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + 
   theme(legend.position = 'none') +
   labs(x = 'Month', y = ' Prop. Recruits', fill = "")
+ ggsave('plots/recruits_month.png')
 ```
 
 ## Raça sexual
