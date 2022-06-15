@@ -7,28 +7,33 @@ library(CatDyn)
 #' ver parametro nmult
 
 for(i in c(2009:2021)){
-  load(paste0('Z:/PNAB/vendas-dia/vd_', i,'.Rdata'))
+  load(paste0('C:/vendas-dia/vd_', i,'.Rdata'))
+  temp = ls(pattern = 'vd_') %>% get
+  viagens_occ = temp %>% filter(EESPECIE == 'OCC') %>% 
+    select(id_venda)
+  temp = temp %>% filter(id_venda %in% viagens_occ$id_venda) %>% 
+    group_by(year_sale, month_sale, id_venda, EGRUPART, zona) %>% 
+    summarise(EESPECIE = 'OCC',
+              QVENDA = sum(QVENDA[EESPECIE == 'OCC']))
+  assign(paste0('vd',i), temp)
+  rm(list = ls( pattern = 'vd_'))
 }
 
-vd = rbind(vd_2009,vd_2010,vd_2011,vd_2012,vd_2013,vd_2014,vd_2015,vd_2016,vd_2017,vd_2018,vd_2019,
-           vd_2020,vd_2021)
-
-
-viagens_occ = vd %>% 
-  filter(EESPECIE == 'OCC') %>% 
-  select(id_venda)
+vd = rbind(vd2009,vd2010,vd2011,vd2012,vd2013,vd2014,
+           vd2015,vd2016,vd2017,vd2018,vd2019,
+           vd2020,vd2021)
+rm(list = ls(pattern = 'vd2'))
 
 passo_1 = vd %>%
+  filter(zona != 'O') %>% 
+  filter(EGRUPART != 'PS') %>% 
   mutate(zona = case_when(zona == '27.9.a.s.a' ~ 'S',
                             T ~'W'),
          EGRUPART = case_when(EGRUPART == 'MIS_MIS' ~ 'MIS',
-                              T ~ 'OTB')) %>%
-  
-  filter(EGRUPART != 'PS') %>% 
-  filter(id_venda %in% viagens_occ$id_venda) %>% 
+                              T ~ 'OTB'))
   group_by(year_sale, month_sale, EGRUPART, zona) %>% 
     summarise(effort = length(unique(id_venda)),
-              catch = sum(QVENDA[EESPECIE == 'OCC']))
+              catch = sum(QVENDA))
 
 
 passo_2 = 

@@ -21,7 +21,7 @@ fp <- fp_par(
 ft <- fp_text(shading.color='#EFEFEF', bold = TRUE)
 ```
 
-```{r}
+```{r, include = F}
 # TODO
 # 
 
@@ -235,29 +235,43 @@ classe_modal = classe_modal$classe_peso[which.max(classe_modal$n)]
 amp_peso %>% 
   group_by(ANO, GEAR, zona) %>% 
   summarise(recruits = sum(n_ampliados[classe_peso <= classe_modal]) / sum(n_ampliados)) %>% 
+#  write.csv(.,file = 'recrutas_ano.csv')  
+
   ggplot() + 
   geom_line(aes(x = ANO,
                 y = recruits,
-                group = zona,
-                color = zona)) + 
-  facet_wrap(GEAR ~ .) +
-  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()
+                group = GEAR,
+                color = GEAR)) + 
+  
+  facet_wrap(zona ~ .) +
+  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()+
+   theme(axis.text.x = element_text(angle = 90, size = 5)) +
+    labs(x = 'Year', y = ' Recruits', fill = "")
 ```
 
 ```{r}
 amp_peso %>%
+  filter(GEAR =='MIS') %>% 
   mutate(  MES = as.numeric(as.character(MES)),
            ANO = as.numeric(as.character(ANO)),
            ano_mes = zoo::as.yearmon(paste(ANO, MES, sep = '-'))) %>% 
-  group_by(ano_mes, GEAR, zona) %>% 
-  summarise(recruits = sum(n_ampliados[classe_peso <= classe_modal], na.rm =T) / sum(n_ampliados, na.rm =T)) %>% 
+  group_by(MES, ANO, GEAR, zona) %>% 
+  summarise(recruits = sum(n_ampliados[classe_peso <= classe_modal], na.rm =T) / sum(n_ampliados, na.rm =T)) %>%  
+  group_by(MES, GEAR, zona) %>% 
+  summarise(mean_mes= mean(recruits, na.rm=TRUE),
+            max = mean_mes +sd(recruits, na.rm = T),
+            min = mean_mes -sd(recruits, na.rm = T)) %>% 
   ggplot() + 
-  geom_line(aes(x = ano_mes,
-                y = recruits,
-                group = zona,
-                color = zona)) + 
-  facet_grid(GEAR ~ .) +
-  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()
+  geom_line(aes(x = as.factor(MES),
+                y = mean_mes,
+                group = GEAR,
+                color = GEAR)) + 
+  geom_ribbon(aes(ymin=min, ymax=max, x=factor(MES), group=1, fill=GEAR),alpha=0.2)+
+                facet_grid(zona ~ .) +
+  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()+
+  scale_fill_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + 
+  theme(legend.position = 'none') +
+  labs(x = 'Month', y = ' Prop. Recruits', fill = "")
 ```
 
 ## Raça sexual
@@ -274,119 +288,123 @@ bio_tmp %>%
    
   ggplot() + 
   geom_line(aes(x = ano_mes, y = rassudo_sexual, group = zona, col = zona)) +
+  #facet_grid(zona ~ .) +
+  facet_wrap(zona ~ .) +
   theme_light() + 
   theme(axis.text.x = element_text(angle = 90),
         legend.position = 'bottom',
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
         ) +
-  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4])
+  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4])+
+    labs(x = 'Year', y = ' Sex Ratio', fill = "")
 ```
 
-# (I)maturidade à classe de comprimento
+## Relação peso comprimento
 
 ```{r}
 bio_tmp %>% 
-  filter(ano %in% c(2009:2016)) %>% 
+    mutate(regiao = case_when(regiao == '27.9.a.s.a' ~ 'S',
+                          T ~'W')) %>%
+  filter(ano %in% c(2009:2021)) %>% 
   ggplot() +
   geom_point(aes(x = comp_manto, y = peso, color = regiao)) + 
+  facet_wrap(regiao ~ .) +
   theme_light() + 
   theme(axis.text.x = element_text(angle = 90),
         legend.position = 'bottom',
         panel.grid.major = element_blank(),
         panel.grid.minor = element_blank()
         ) +
-  scale_color_manual(values = wes_palette('Zissou1', n = 5)[c(1,3,5)])
+  scale_color_manual(values = wes_palette('Zissou1', n = 5)[c(1,5)])+
+  labs(x = 'Mantle length', y = 'Weigth (g)', fill = "")
   
 ```
 
 
 ```{r}
-bio_tmp %>%
-    mutate(zona = case_when(regiao == '27.9.a.s.a' ~ 'S',
-                          T ~'W'),
-           mes = as.numeric(as.character(mes)),
-           ano = as.numeric(as.character(ano)),
-           ano_mes = zoo::as.yearmon(paste(ano, mes, sep = '-'))) %>%
-  # filter(ano == 2017) %>% 
-  group_by(ano, zona, sexo, comp_manto) %>%
-  summarise(viris = sum(mat%in%c(3,4,5))/length(mat)) %>% #View()
-  ggplot() + 
-  geom_point(aes(x = comp_manto, y = viris, group = zona, col = sexo)) +
-  theme_light() + 
-  theme(axis.text.x = element_text(angle = 90),
-        legend.position = 'bottom',
-        panel.grid.major = element_blank(),
-        panel.grid.minor = element_blank()
-        ) +
-  scale_color_manual(values = wes_palette('Zissou1', n = 4)[c(1,4)]) + 
-  facet_grid(ano ~ zona)
-```
+imat_var=
+bio_tmp %>% 
+mutate(
+regiao = case_when(regiao == '27.9.a.s.a' ~ 'S',
+                          T ~'W')) %>% 
+  group_by(ano,mes,regiao) %>% 
+  summarise(imat_mes_ano = sum((mat %in% c('1', '2'))) / length(mat)) %>%
+  
+  group_by(mes, regiao) %>%
+  summarise(imat_ano = mean(imat_mes_ano),
+            max = imat_ano +sd(imat_mes_ano),
+            min = imat_ano -sd(imat_mes_ano))
+
+imat_var$mes <- factor(imat_var$mes, levels=1:12)
+
+
+  ggplot(imat_var, aes(x=mes, y=imat_ano)) + 
+  geom_bar(stat="identity", 
+           col="black",
+           fill = wes_palette('FantasticFox1',n =1),
+           position=position_dodge()) +
+  geom_errorbar(aes(ymin=min, ymax=max), width=.2,
+                 position=position_dodge(.9)) +
+     facet_wrap(regiao~.) + 
+    theme_light()+
+  # scale_fill_manual(values = wes_palette('FantasticFox1', n = 2)) +
+  labs(x = 'Month', y = '%', fill = "",
+       title = 'Imature')
   
   
-
 ```
+  
+```{r}
+mat_var=
+bio_tmp %>% 
+  filter(ano %in% c(2019:2021)) %>% 
+mutate(
+regiao = case_when(regiao == '27.9.a.s.a' ~ 'S',
+                          T ~'W')) %>% 
+  group_by(ano,mes,regiao, sexo) %>% 
+  summarise(mat_mes_ano = sum((!mat %in% c('1', '2'))) / length(mat)) %>%
+  
+  group_by(mes, regiao, sexo) %>%
+  summarise(imat_ano = mean(mat_mes_ano),
+            max = imat_ano +sd(mat_mes_ano),
+            min = imat_ano -sd(mat_mes_ano))
+
+mat_var$mes <- factor(mat_var$mes, levels=1:12)
 
 
+  ggplot(mat_var) + 
+  geom_line(aes(x = mes,
+                y = imat_ano,
+                group = sexo,
+                color = sexo)) + 
+  geom_ribbon(aes(ymin=min, ymax=max, x=mes, group=sexo, fill=sexo),alpha=0.2)+
+                facet_grid(regiao ~ sexo) +
+  scale_color_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + theme_light()+
+  scale_fill_manual(values = wes_palette('FantasticFox1', n = 4)[3:4]) + 
+  theme(legend.position = 'none') +
+  labs(x = 'Month', y = ' Prop. matures', fill = "")
+```
+  
 
+## Ogivas de maturacao por ano
 
-
-
-
-
-
-
-
-
-
-
-# Estimativas de %% de maturacao
+(assume que o ogivador foi corrido)
 
 ```{r}
-
-# ensaio de maturacao
-
-bio_tmp %>%
-  group_by(mes, sexo, regiao) %>%
-  summarise(imatur = mean(mat %in% c('1', '2'))) %>%
-            
+teste_u %>% 
   ggplot() + 
-    geom_line(aes(x = mes,
-                   y = imatur,
-                   group = sexo)) +
-
-  facet_grid(regiao ~ sexo) +
+  geom_line(aes(x = l50_x,
+                y = l50_y,
+                group = ano,
+                col = ano),
+            size = 0.5) +
+  # geom_ribbon(aes(x = l50_x, ymin = l50_lower, ymax = l50_upper,
+  #                 group = ano, fill = ano), alpha = 0.1) + 
   theme_light() + 
-  theme(legend.position = 'bottom')
-
-st = 
-bio_tmp %>% 
-  mutate(time = paste0(ano, mes)) %>% 
-  group_by(time) %>% 
-  summarise(mat = sum((mat %in% c('1', '2'))) / length(mat)) 
-  
-st %>% 
-  ggplot() + 
-  geom_line(aes(x = time, y = mat, group = 1)) + theme_light() + 
-  theme(axis.text.x = element_text(angle = 90))
-
-
-st2 = 
-bio_tmp %>% 
-  group_by(ano, mes) %>% 
-  summarise(mat = sum((!mat %in% c('1', '2'))) / length(mat)) 
-
-st2 %>% 
-  ggplot() + 
-  geom_line(aes(x = mes, y = mat, group = ano, col = ano)) + theme_light()
-
-
+  theme(legend.position = 'right') +
+  facet_grid(sexo ~ regiao) + 
+  scale_color_manual(values = kelly(14)[2:14]) + 
+  labs(x = 'weight (g)',
+       y = 'Prop. matures')
 ```
-
-
-
-
-
-
-
-
